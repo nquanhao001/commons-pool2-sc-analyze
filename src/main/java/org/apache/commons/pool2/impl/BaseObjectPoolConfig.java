@@ -16,8 +16,6 @@
  */
 package org.apache.commons.pool2.impl;
 
-import org.apache.commons.pool2.BaseObject;
-
 /**
  * Provides the implementation for the common attributes shared by the
  * sub-classes. New instances of this class will be created using the defaults
@@ -29,7 +27,7 @@ import org.apache.commons.pool2.BaseObject;
  *
  * @since 2.0
  */
-public abstract class BaseObjectPoolConfig extends BaseObject implements Cloneable {
+public abstract class BaseObjectPoolConfig implements Cloneable {
 
     /**
      * The default value for the {@code lifo} configuration attribute.
@@ -163,13 +161,13 @@ public abstract class BaseObjectPoolConfig extends BaseObject implements Cloneab
     private long maxWaitMillis = DEFAULT_MAX_WAIT_MILLIS;
 
     private long minEvictableIdleTimeMillis =
-        DEFAULT_MIN_EVICTABLE_IDLE_TIME_MILLIS;
+            DEFAULT_MIN_EVICTABLE_IDLE_TIME_MILLIS;
 
     private long softMinEvictableIdleTimeMillis =
             DEFAULT_MIN_EVICTABLE_IDLE_TIME_MILLIS;
 
     private int numTestsPerEvictionRun =
-        DEFAULT_NUM_TESTS_PER_EVICTION_RUN;
+            DEFAULT_NUM_TESTS_PER_EVICTION_RUN;
 
     private String evictionPolicyClassName = DEFAULT_EVICTION_POLICY_CLASS_NAME;
 
@@ -182,7 +180,7 @@ public abstract class BaseObjectPoolConfig extends BaseObject implements Cloneab
     private boolean testWhileIdle = DEFAULT_TEST_WHILE_IDLE;
 
     private long timeBetweenEvictionRunsMillis =
-        DEFAULT_TIME_BETWEEN_EVICTION_RUNS_MILLIS;
+            DEFAULT_TIME_BETWEEN_EVICTION_RUNS_MILLIS;
 
     private boolean blockWhenExhausted = DEFAULT_BLOCK_WHEN_EXHAUSTED;
 
@@ -191,7 +189,7 @@ public abstract class BaseObjectPoolConfig extends BaseObject implements Cloneab
     // TODO Consider changing this to a single property for 3.x
     private String jmxNamePrefix = DEFAULT_JMX_NAME_PREFIX;
 
-    private String jmxNameBase = DEFAULT_JMX_NAME_BASE;
+    private String jmxNameBase = DEFAULT_JMX_NAME_PREFIX;
 
 
     /**
@@ -232,7 +230,7 @@ public abstract class BaseObjectPoolConfig extends BaseObject implements Cloneab
      * @see GenericObjectPool#getLifo()
      * @see GenericKeyedObjectPool#getLifo()
      */
-    public void setLifo(final boolean lifo) {
+    public void setLifo(boolean lifo) {
         this.lifo = lifo;
     }
 
@@ -246,7 +244,7 @@ public abstract class BaseObjectPoolConfig extends BaseObject implements Cloneab
      * @see GenericObjectPool#getFairness()
      * @see GenericKeyedObjectPool#getFairness()
      */
-    public void setFairness(final boolean fairness) {
+    public void setFairness(boolean fairness) {
         this.fairness = fairness;
     }
 
@@ -274,7 +272,7 @@ public abstract class BaseObjectPoolConfig extends BaseObject implements Cloneab
      * @see GenericObjectPool#getMaxWaitMillis()
      * @see GenericKeyedObjectPool#getMaxWaitMillis()
      */
-    public void setMaxWaitMillis(final long maxWaitMillis) {
+    public void setMaxWaitMillis(long maxWaitMillis) {
         this.maxWaitMillis = maxWaitMillis;
     }
 
@@ -302,7 +300,7 @@ public abstract class BaseObjectPoolConfig extends BaseObject implements Cloneab
      * @see GenericObjectPool#getMinEvictableIdleTimeMillis()
      * @see GenericKeyedObjectPool#getMinEvictableIdleTimeMillis()
      */
-    public void setMinEvictableIdleTimeMillis(final long minEvictableIdleTimeMillis) {
+    public void setMinEvictableIdleTimeMillis(long minEvictableIdleTimeMillis) {
         this.minEvictableIdleTimeMillis = minEvictableIdleTimeMillis;
     }
 
@@ -334,7 +332,7 @@ public abstract class BaseObjectPoolConfig extends BaseObject implements Cloneab
      * @see GenericKeyedObjectPool#getSoftMinEvictableIdleTimeMillis()
      */
     public void setSoftMinEvictableIdleTimeMillis(
-            final long softMinEvictableIdleTimeMillis) {
+            long softMinEvictableIdleTimeMillis) {
         this.softMinEvictableIdleTimeMillis = softMinEvictableIdleTimeMillis;
     }
 
@@ -362,7 +360,7 @@ public abstract class BaseObjectPoolConfig extends BaseObject implements Cloneab
      * @see GenericObjectPool#getNumTestsPerEvictionRun()
      * @see GenericKeyedObjectPool#getNumTestsPerEvictionRun()
      */
-    public void setNumTestsPerEvictionRun(final int numTestsPerEvictionRun) {
+    public void setNumTestsPerEvictionRun(int numTestsPerEvictionRun) {
         this.numTestsPerEvictionRun = numTestsPerEvictionRun;
     }
 
@@ -394,7 +392,7 @@ public abstract class BaseObjectPoolConfig extends BaseObject implements Cloneab
      *
      * @since 2.2
      */
-    public void setTestOnCreate(final boolean testOnCreate) {
+    public void setTestOnCreate(boolean testOnCreate) {
         this.testOnCreate = testOnCreate;
     }
 
@@ -422,7 +420,7 @@ public abstract class BaseObjectPoolConfig extends BaseObject implements Cloneab
      * @see GenericObjectPool#getTestOnBorrow()
      * @see GenericKeyedObjectPool#getTestOnBorrow()
      */
-    public void setTestOnBorrow(final boolean testOnBorrow) {
+    public void setTestOnBorrow(boolean testOnBorrow) {
         this.testOnBorrow = testOnBorrow;
     }
 
@@ -450,7 +448,7 @@ public abstract class BaseObjectPoolConfig extends BaseObject implements Cloneab
      * @see GenericObjectPool#getTestOnReturn()
      * @see GenericKeyedObjectPool#getTestOnReturn()
      */
-    public void setTestOnReturn(final boolean testOnReturn) {
+    public void setTestOnReturn(boolean testOnReturn) {
         this.testOnReturn = testOnReturn;
     }
 
@@ -478,7 +476,7 @@ public abstract class BaseObjectPoolConfig extends BaseObject implements Cloneab
      * @see GenericObjectPool#getTestWhileIdle()
      * @see GenericKeyedObjectPool#getTestWhileIdle()
      */
-    public void setTestWhileIdle(final boolean testWhileIdle) {
+    public void setTestWhileIdle(boolean testWhileIdle) {
         this.testWhileIdle = testWhileIdle;
     }
 
@@ -508,7 +506,7 @@ public abstract class BaseObjectPoolConfig extends BaseObject implements Cloneab
      * @see GenericKeyedObjectPool#getTimeBetweenEvictionRunsMillis()
      */
     public void setTimeBetweenEvictionRunsMillis(
-            final long timeBetweenEvictionRunsMillis) {
+            long timeBetweenEvictionRunsMillis) {
         this.timeBetweenEvictionRunsMillis = timeBetweenEvictionRunsMillis;
     }
 
@@ -536,7 +534,7 @@ public abstract class BaseObjectPoolConfig extends BaseObject implements Cloneab
      * @see GenericObjectPool#getEvictionPolicyClassName()
      * @see GenericKeyedObjectPool#getEvictionPolicyClassName()
      */
-    public void setEvictionPolicyClassName(final String evictionPolicyClassName) {
+    public void setEvictionPolicyClassName(String evictionPolicyClassName) {
         this.evictionPolicyClassName = evictionPolicyClassName;
     }
 
@@ -564,7 +562,7 @@ public abstract class BaseObjectPoolConfig extends BaseObject implements Cloneab
      * @see GenericObjectPool#getBlockWhenExhausted()
      * @see GenericKeyedObjectPool#getBlockWhenExhausted()
      */
-    public void setBlockWhenExhausted(final boolean blockWhenExhausted) {
+    public void setBlockWhenExhausted(boolean blockWhenExhausted) {
         this.blockWhenExhausted = blockWhenExhausted;
     }
 
@@ -586,7 +584,7 @@ public abstract class BaseObjectPoolConfig extends BaseObject implements Cloneab
      * @param jmxEnabled The new setting of {@code jmxEnabled}
      *        for this configuration instance
      */
-    public void setJmxEnabled(final boolean jmxEnabled) {
+    public void setJmxEnabled(boolean jmxEnabled) {
         this.jmxEnabled = jmxEnabled;
     }
 
@@ -612,7 +610,7 @@ public abstract class BaseObjectPoolConfig extends BaseObject implements Cloneab
      * @param jmxNameBase The new setting of {@code jmxNameBase}
      *        for this configuration instance
      */
-    public void setJmxNameBase(final String jmxNameBase) {
+    public void setJmxNameBase(String jmxNameBase) {
         this.jmxNameBase = jmxNameBase;
     }
 
@@ -636,43 +634,7 @@ public abstract class BaseObjectPoolConfig extends BaseObject implements Cloneab
      * @param jmxNamePrefix The new setting of {@code jmxNamePrefix}
      *        for this configuration instance
      */
-    public void setJmxNamePrefix(final String jmxNamePrefix) {
+    public void setJmxNamePrefix(String jmxNamePrefix) {
         this.jmxNamePrefix = jmxNamePrefix;
-    }
-
-    @Override
-    protected void toStringAppendFields(final StringBuilder builder) {
-        builder.append("lifo=");
-        builder.append(lifo);
-        builder.append(", fairness=");
-        builder.append(fairness);
-        builder.append(", maxWaitMillis=");
-        builder.append(maxWaitMillis);
-        builder.append(", minEvictableIdleTimeMillis=");
-        builder.append(minEvictableIdleTimeMillis);
-        builder.append(", softMinEvictableIdleTimeMillis=");
-        builder.append(softMinEvictableIdleTimeMillis);
-        builder.append(", numTestsPerEvictionRun=");
-        builder.append(numTestsPerEvictionRun);
-        builder.append(", evictionPolicyClassName=");
-        builder.append(evictionPolicyClassName);
-        builder.append(", testOnCreate=");
-        builder.append(testOnCreate);
-        builder.append(", testOnBorrow=");
-        builder.append(testOnBorrow);
-        builder.append(", testOnReturn=");
-        builder.append(testOnReturn);
-        builder.append(", testWhileIdle=");
-        builder.append(testWhileIdle);
-        builder.append(", timeBetweenEvictionRunsMillis=");
-        builder.append(timeBetweenEvictionRunsMillis);
-        builder.append(", blockWhenExhausted=");
-        builder.append(blockWhenExhausted);
-        builder.append(", jmxEnabled=");
-        builder.append(jmxEnabled);
-        builder.append(", jmxNamePrefix=");
-        builder.append(jmxNamePrefix);
-        builder.append(", jmxNameBase=");
-        builder.append(jmxNameBase);
     }
 }

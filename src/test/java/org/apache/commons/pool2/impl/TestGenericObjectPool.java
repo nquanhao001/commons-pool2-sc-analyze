@@ -2466,14 +2466,11 @@ public class TestGenericObjectPool extends TestBaseObjectPool {
     public void testPreparePool() throws Exception {
         pool.setMinIdle(1);
         pool.setMaxTotal(1);
-        pool.preparePool();
         Assert.assertEquals(1, pool.getNumIdle());
         final String obj = pool.borrowObject();
-        pool.preparePool();
         Assert.assertEquals(0, pool.getNumIdle());
         pool.setMinIdle(0);
         pool.returnObject(obj);
-        pool.preparePool();
         Assert.assertEquals(0, pool.getNumIdle());
     }
 

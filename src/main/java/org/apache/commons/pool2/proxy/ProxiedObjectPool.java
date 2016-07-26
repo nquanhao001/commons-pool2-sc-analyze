@@ -43,7 +43,7 @@ public class ProxiedObjectPool<T> implements ObjectPool<T> {
      * @param pool  The object pool to wrap
      * @param proxySource The source of the proxy objects
      */
-    public ProxiedObjectPool(final ObjectPool<T> pool, final ProxySource<T> proxySource) {
+    public ProxiedObjectPool(ObjectPool<T> pool, ProxySource<T> proxySource) {
         this.pool = pool;
         this.proxySource = proxySource;
     }
@@ -59,22 +59,22 @@ public class ProxiedObjectPool<T> implements ObjectPool<T> {
         if (pool instanceof UsageTracking) {
             usageTracking = (UsageTracking<T>) pool;
         }
-        final T pooledObject = pool.borrowObject();
-        final T proxy = proxySource.createProxy(pooledObject, usageTracking);
+        T pooledObject = pool.borrowObject();
+        T proxy = proxySource.createProxy(pooledObject, usageTracking);
         return proxy;
     }
 
 
     @Override
-    public void returnObject(final T proxy) throws Exception {
-        final T pooledObject = proxySource.resolveProxy(proxy);
+    public void returnObject(T proxy) throws Exception {
+        T pooledObject = proxySource.resolveProxy(proxy);
         pool.returnObject(pooledObject);
     }
 
 
     @Override
-    public void invalidateObject(final T proxy) throws Exception {
-        final T pooledObject = proxySource.resolveProxy(proxy);
+    public void invalidateObject(T proxy) throws Exception {
+        T pooledObject = proxySource.resolveProxy(proxy);
         pool.invalidateObject(pooledObject);
     }
 
@@ -107,20 +107,5 @@ public class ProxiedObjectPool<T> implements ObjectPool<T> {
     @Override
     public void close() {
         pool.close();
-    }
-
-
-    /**
-     * @since 2.4.3
-     */
-    @Override
-    public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("ProxiedObjectPool [pool=");
-        builder.append(pool);
-        builder.append(", proxySource=");
-        builder.append(proxySource);
-        builder.append("]");
-        return builder.toString();
     }
 }

@@ -25,11 +25,11 @@ package org.apache.commons.pool2;
  *
  * @param <T> Type of element pooled in this pool.
  *
- * @version $Revision: 1735057 $
+ * @version $Revision: 1566605 $
  *
  * @since 2.0
  */
-public abstract class BaseObjectPool<T> extends BaseObject implements ObjectPool<T> {
+public abstract class BaseObjectPool<T> implements ObjectPool<T> {
 
     @Override
     public abstract T borrowObject() throws Exception;
@@ -118,10 +118,4 @@ public abstract class BaseObjectPool<T> extends BaseObject implements ObjectPool
     }
 
     private volatile boolean closed = false;
-
-    @Override
-    protected void toStringAppendFields(final StringBuilder builder) {
-        builder.append("closed=");
-        builder.append(closed);
-    }
 }

@@ -42,7 +42,7 @@ class BaseProxyHandler<T> {
      *                      be provided with usage tracking information for this
      *                      wrapped object
      */
-    BaseProxyHandler(final T pooledObject, final UsageTracking<T> usageTracking) {
+    BaseProxyHandler(T pooledObject, UsageTracking<T> usageTracking) {
         this.pooledObject = pooledObject;
         this.usageTracking = usageTracking;
     }
@@ -66,7 +66,7 @@ class BaseProxyHandler<T> {
      * @return the object that this proxy was wrapping
      */
     T disableProxy() {
-        final T result = pooledObject;
+        T result = pooledObject;
         pooledObject = null;
         return result;
     }
@@ -94,28 +94,12 @@ class BaseProxyHandler<T> {
      * @return          The result of the method call
      * @throws Throwable    If the method invocation fails
      */
-    Object doInvoke(final Method method, final Object[] args) throws Throwable {
+    Object doInvoke(Method method, Object[] args) throws Throwable {
         validateProxiedObject();
-        final T object = getPooledObject();
+        T object = getPooledObject();
         if (usageTracking != null) {
             usageTracking.use(object);
         }
         return method.invoke(object, args);
-    }
-
-
-    /**
-     * @since 2.4.3
-     */
-    @Override
-    public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append(getClass().getName());
-        builder.append(" [pooledObject=");
-        builder.append(pooledObject);
-        builder.append(", usageTracking=");
-        builder.append(usageTracking);
-        builder.append("]");
-        return builder.toString();
     }
 }

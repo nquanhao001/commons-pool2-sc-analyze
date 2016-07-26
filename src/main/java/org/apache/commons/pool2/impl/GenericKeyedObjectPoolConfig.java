@@ -49,7 +49,7 @@ public class GenericKeyedObjectPoolConfig extends BaseObjectPoolConfig {
     public static final int DEFAULT_MIN_IDLE_PER_KEY = 0;
 
     /**
-     * The default value for the {@code maxIdlePerKey} configuration attribute.
+     * The default value for the {@code minIdlePerKey} configuration attribute.
      * @see GenericKeyedObjectPool#getMaxIdlePerKey()
      */
     public static final int DEFAULT_MAX_IDLE_PER_KEY = 8;
@@ -91,7 +91,7 @@ public class GenericKeyedObjectPoolConfig extends BaseObjectPoolConfig {
      *
      * @see GenericKeyedObjectPool#setMaxTotal(int)
      */
-    public void setMaxTotal(final int maxTotal) {
+    public void setMaxTotal(int maxTotal) {
         this.maxTotal = maxTotal;
     }
 
@@ -117,7 +117,7 @@ public class GenericKeyedObjectPoolConfig extends BaseObjectPoolConfig {
      *
      * @see GenericKeyedObjectPool#setMaxTotalPerKey(int)
      */
-    public void setMaxTotalPerKey(final int maxTotalPerKey) {
+    public void setMaxTotalPerKey(int maxTotalPerKey) {
         this.maxTotalPerKey = maxTotalPerKey;
     }
 
@@ -143,7 +143,7 @@ public class GenericKeyedObjectPoolConfig extends BaseObjectPoolConfig {
      *
      * @see GenericKeyedObjectPool#setMinIdlePerKey(int)
      */
-    public void setMinIdlePerKey(final int minIdlePerKey) {
+    public void setMinIdlePerKey(int minIdlePerKey) {
         this.minIdlePerKey = minIdlePerKey;
     }
 
@@ -169,7 +169,7 @@ public class GenericKeyedObjectPoolConfig extends BaseObjectPoolConfig {
      *
      * @see GenericKeyedObjectPool#setMaxIdlePerKey(int)
      */
-    public void setMaxIdlePerKey(final int maxIdlePerKey) {
+    public void setMaxIdlePerKey(int maxIdlePerKey) {
         this.maxIdlePerKey = maxIdlePerKey;
     }
 
@@ -177,21 +177,8 @@ public class GenericKeyedObjectPoolConfig extends BaseObjectPoolConfig {
     public GenericKeyedObjectPoolConfig clone() {
         try {
             return (GenericKeyedObjectPoolConfig) super.clone();
-        } catch (final CloneNotSupportedException e) {
+        } catch (CloneNotSupportedException e) {
             throw new AssertionError(); // Can't happen
         }
-    }
-
-    @Override
-    protected void toStringAppendFields(final StringBuilder builder) {
-        super.toStringAppendFields(builder);
-        builder.append(", minIdlePerKey=");
-        builder.append(minIdlePerKey);
-        builder.append(", maxIdlePerKey=");
-        builder.append(maxIdlePerKey);
-        builder.append(", maxTotalPerKey=");
-        builder.append(maxTotalPerKey);
-        builder.append(", maxTotal=");
-        builder.append(maxTotal);
     }
 }

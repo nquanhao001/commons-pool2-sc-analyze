@@ -21,8 +21,6 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
 import java.lang.ref.WeakReference;
-import java.util.Arrays;
-import java.util.Deque;
 import java.util.Iterator;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicLong;
@@ -35,7 +33,6 @@ import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
 
-import org.apache.commons.pool2.BaseObject;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.SwallowedExceptionListener;
 
@@ -52,7 +49,7 @@ import org.apache.commons.pool2.SwallowedExceptionListener;
  *
  * @since 2.0
  */
-public abstract class BaseGenericObjectPool<T> extends BaseObject {
+public abstract class BaseGenericObjectPool<T> {
 
     // Constants
     /**
@@ -94,7 +91,7 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
     volatile boolean closed = false;
     final Object evictionLock = new Object();
     private Evictor evictor = null; // @GuardedBy("evictionLock")
-    EvictionIterator evictionIterator = null; // @GuardedBy("evictionLock")
+    Iterator<PooledObject<T>> evictionIterator = null; // @GuardedBy("evictionLock")
     /*
      * Class loader for evictor thread to use since, in a JavaEE or similar
      * environment, the context class loader for the evictor thread may not have
@@ -129,8 +126,8 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
      *                      overridden by the config
      * @param jmxNamePrefix Prefix to be used for JMX name for the new pool
      */
-    public BaseGenericObjectPool(final BaseObjectPoolConfig config,
-            final String jmxNameBase, final String jmxNamePrefix) {
+    public BaseGenericObjectPool(BaseObjectPoolConfig config,
+                                 String jmxNameBase, String jmxNamePrefix) {
         if (config.getJmxEnabled()) {
             this.oname = jmxRegister(config, jmxNameBase, jmxNamePrefix);
         } else {
@@ -141,7 +138,7 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
         this.creationStackTrace = getStackTrace(new Exception());
 
         // save the current TCCL (if any) to be used later by the evictor Thread
-        final ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
         if (cl == null) {
             factoryClassLoader = null;
         } else {
@@ -178,7 +175,7 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
      *
      * @see #getMaxTotal
      */
-    public final void setMaxTotal(final int maxTotal) {
+    public final void setMaxTotal(int maxTotal) {
         this.maxTotal = maxTotal;
     }
 
@@ -207,7 +204,7 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
      *
      * @see #getBlockWhenExhausted
      */
-    public final void setBlockWhenExhausted(final boolean blockWhenExhausted) {
+    public final void setBlockWhenExhausted(boolean blockWhenExhausted) {
         this.blockWhenExhausted = blockWhenExhausted;
     }
 
@@ -242,7 +239,7 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
      * @see #getMaxWaitMillis
      * @see #setBlockWhenExhausted
      */
-    public final void setMaxWaitMillis(final long maxWaitMillis) {
+    public final void setMaxWaitMillis(long maxWaitMillis) {
         this.maxWaitMillis = maxWaitMillis;
     }
 
@@ -285,7 +282,7 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
      *
      * @see #getLifo()
      */
-    public final void setLifo(final boolean lifo) {
+    public final void setLifo(boolean lifo) {
         this.lifo = lifo;
     }
 
@@ -322,7 +319,7 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
      *
      * @since 2.2
      */
-    public final void setTestOnCreate(final boolean testOnCreate) {
+    public final void setTestOnCreate(boolean testOnCreate) {
         this.testOnCreate = testOnCreate;
     }
 
@@ -357,7 +354,7 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
      *
      * @see #getTestOnBorrow
      */
-    public final void setTestOnBorrow(final boolean testOnBorrow) {
+    public final void setTestOnBorrow(boolean testOnBorrow) {
         this.testOnBorrow = testOnBorrow;
     }
 
@@ -390,7 +387,7 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
      *
      * @see #getTestOnReturn
      */
-    public final void setTestOnReturn(final boolean testOnReturn) {
+    public final void setTestOnReturn(boolean testOnReturn) {
         this.testOnReturn = testOnReturn;
     }
 
@@ -427,7 +424,7 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
      * @see #getTestWhileIdle
      * @see #setTimeBetweenEvictionRunsMillis
      */
-    public final void setTestWhileIdle(final boolean testWhileIdle) {
+    public final void setTestWhileIdle(boolean testWhileIdle) {
         this.testWhileIdle = testWhileIdle;
     }
 
@@ -455,7 +452,7 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
      * @see #getTimeBetweenEvictionRunsMillis
      */
     public final void setTimeBetweenEvictionRunsMillis(
-            final long timeBetweenEvictionRunsMillis) {
+            long timeBetweenEvictionRunsMillis) {
         this.timeBetweenEvictionRunsMillis = timeBetweenEvictionRunsMillis;
         startEvictor(timeBetweenEvictionRunsMillis);
     }
@@ -495,7 +492,7 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
      * @see #getNumTestsPerEvictionRun
      * @see #setTimeBetweenEvictionRunsMillis
      */
-    public final void setNumTestsPerEvictionRun(final int numTestsPerEvictionRun) {
+    public final void setNumTestsPerEvictionRun(int numTestsPerEvictionRun) {
         this.numTestsPerEvictionRun = numTestsPerEvictionRun;
     }
 
@@ -529,7 +526,7 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
      * @see #setTimeBetweenEvictionRunsMillis
      */
     public final void setMinEvictableIdleTimeMillis(
-            final long minEvictableIdleTimeMillis) {
+            long minEvictableIdleTimeMillis) {
         this.minEvictableIdleTimeMillis = minEvictableIdleTimeMillis;
     }
 
@@ -570,7 +567,7 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
      * @see #getSoftMinEvictableIdleTimeMillis
      */
     public final void setSoftMinEvictableIdleTimeMillis(
-            final long softMinEvictableIdleTimeMillis) {
+            long softMinEvictableIdleTimeMillis) {
         this.softMinEvictableIdleTimeMillis = softMinEvictableIdleTimeMillis;
     }
 
@@ -588,9 +585,7 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
 
     /**
      * Sets the name of the {@link EvictionPolicy} implementation that is
-     * used by this pool. The Pool will attempt to load the class using the
-     * thread context class loader. If that fails, the Pool will attempt to load
-     * the class using the class loader that loaded this class.
+     * used by this pool.
      *
      * @param evictionPolicyClassName   the fully qualified class name of the
      *                                  new eviction policy
@@ -598,34 +593,28 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
      * @see #getEvictionPolicyClassName()
      */
     public final void setEvictionPolicyClassName(
-            final String evictionPolicyClassName) {
+            String evictionPolicyClassName) {
         try {
-            Class<?> clazz;
-            try {
-                clazz = Class.forName(evictionPolicyClassName, true,
-                        Thread.currentThread().getContextClassLoader());
-            } catch (final ClassNotFoundException e) {
-                clazz = Class.forName(evictionPolicyClassName);
-            }
-            final Object policy = clazz.newInstance();
+            Class<?> clazz = Class.forName(evictionPolicyClassName, true,
+                    Thread.currentThread().getContextClassLoader());
+            Object policy = clazz.newInstance();
             if (policy instanceof EvictionPolicy<?>) {
                 @SuppressWarnings("unchecked") // safe, because we just checked the class
-                final
-                EvictionPolicy<T> evicPolicy = (EvictionPolicy<T>) policy;
+                        EvictionPolicy<T> evicPolicy = (EvictionPolicy<T>) policy;
                 this.evictionPolicy = evicPolicy;
             }
-        } catch (final ClassNotFoundException e) {
+        } catch (ClassNotFoundException e) {
             throw new IllegalArgumentException(
                     "Unable to create EvictionPolicy instance of type " +
-                    evictionPolicyClassName, e);
-        } catch (final InstantiationException e) {
+                            evictionPolicyClassName, e);
+        } catch (InstantiationException e) {
             throw new IllegalArgumentException(
                     "Unable to create EvictionPolicy instance of type " +
-                    evictionPolicyClassName, e);
-        } catch (final IllegalAccessException e) {
+                            evictionPolicyClassName, e);
+        } catch (IllegalAccessException e) {
             throw new IllegalArgumentException(
                     "Unable to create EvictionPolicy instance of type " +
-                    evictionPolicyClassName, e);
+                            evictionPolicyClassName, e);
         }
     }
 
@@ -658,11 +647,9 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
 
     /**
      * Returns the {@link EvictionPolicy} defined for this pool.
-     *
      * @return the eviction policy
-     * @since 2.4
      */
-    protected EvictionPolicy<T> getEvictionPolicy() {
+    final EvictionPolicy<T> getEvictionPolicy() {
         return evictionPolicy;
     }
 
@@ -686,7 +673,7 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
      *
      * @param delay time in milliseconds before start and between eviction runs
      */
-    final void startEvictor(final long delay) {
+    final void startEvictor(long delay) {
         synchronized (evictionLock) {
             if (null != evictor) {
                 EvictionTimer.cancel(evictor);
@@ -850,7 +837,7 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
      *                                      for no listener
      */
     public final void setSwallowedExceptionListener(
-            final SwallowedExceptionListener swallowedExceptionListener) {
+            SwallowedExceptionListener swallowedExceptionListener) {
         this.swallowedExceptionListener = swallowedExceptionListener;
     }
 
@@ -860,8 +847,8 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
      *
      * @param e exception to be swallowed
      */
-    final void swallowException(final Exception e) {
-        final SwallowedExceptionListener listener = getSwallowedExceptionListener();
+    final void swallowException(Exception e) {
+        SwallowedExceptionListener listener = getSwallowedExceptionListener();
 
         if (listener == null) {
             return;
@@ -869,11 +856,11 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
 
         try {
             listener.onSwallowException(e);
-        } catch (final OutOfMemoryError oome) {
+        } catch (OutOfMemoryError oome) {
             throw oome;
-        } catch (final VirtualMachineError vme) {
+        } catch (VirtualMachineError vme) {
             throw vme;
-        } catch (final Throwable t) {
+        } catch (Throwable t) {
             // Ignore. Enjoy the irony.
         }
     }
@@ -883,7 +870,7 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
      * @param p object borrowed from the pool
      * @param waitTime time (in milliseconds) that the borrowing thread had to wait
      */
-    final void updateStatsBorrow(final PooledObject<T> p, final long waitTime) {
+    final void updateStatsBorrow(PooledObject<T> p, long waitTime) {
         borrowedCount.incrementAndGet();
         idleTimes.add(p.getIdleTimeMillis());
         waitTimes.add(waitTime);
@@ -903,7 +890,7 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
      * @param activeTime the amount of time (in milliseconds) that the returning
      * object was checked out
      */
-    final void updateStatsReturn(final long activeTime) {
+    final void updateStatsReturn(long activeTime) {
         returnedCount.incrementAndGet();
         activeTimes.add(activeTime);
     }
@@ -916,9 +903,9 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
             try {
                 ManagementFactory.getPlatformMBeanServer().unregisterMBean(
                         oname);
-            } catch (final MBeanRegistrationException e) {
+            } catch (MBeanRegistrationException e) {
                 swallowException(e);
-            } catch (final InstanceNotFoundException e) {
+            } catch (InstanceNotFoundException e) {
                 swallowException(e);
             }
         }
@@ -937,10 +924,10 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
      * @param jmxNamePrefix name prefix
      * @return registered ObjectName, null if registration fails
      */
-    private ObjectName jmxRegister(final BaseObjectPoolConfig config,
-            final String jmxNameBase, String jmxNamePrefix) {
+    private ObjectName jmxRegister(BaseObjectPoolConfig config,
+                                   String jmxNameBase, String jmxNamePrefix) {
         ObjectName objectName = null;
-        final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         int i = 1;
         boolean registered = false;
         String base = config.getJmxNameBase();
@@ -960,7 +947,7 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
                 mbs.registerMBean(this, objName);
                 objectName = objName;
                 registered = true;
-            } catch (final MalformedObjectNameException e) {
+            } catch (MalformedObjectNameException e) {
                 if (BaseObjectPoolConfig.DEFAULT_JMX_NAME_PREFIX.equals(
                         jmxNamePrefix) && jmxNameBase.equals(base)) {
                     // Shouldn't happen. Skip registration if it does.
@@ -971,13 +958,13 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
                             BaseObjectPoolConfig.DEFAULT_JMX_NAME_PREFIX;
                     base = jmxNameBase;
                 }
-            } catch (final InstanceAlreadyExistsException e) {
+            } catch (InstanceAlreadyExistsException e) {
                 // Increment the index and try again
                 i++;
-            } catch (final MBeanRegistrationException e) {
+            } catch (MBeanRegistrationException e) {
                 // Shouldn't happen. Skip registration if it does.
                 registered = true;
-            } catch (final NotCompliantMBeanException e) {
+            } catch (NotCompliantMBeanException e) {
                 // Shouldn't happen. Skip registration if it does.
                 registered = true;
             }
@@ -990,12 +977,12 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
      * @param e exception to trace
      * @return exception stack trace as a string
      */
-    private String getStackTrace(final Exception e) {
+    private String getStackTrace(Exception e) {
         // Need the exception in string form to prevent the retention of
         // references to classes in the stack trace that could trigger a memory
         // leak in a container environment.
-        final Writer w = new StringWriter();
-        final PrintWriter pw = new PrintWriter(w);
+        Writer w = new StringWriter();
+        PrintWriter pw = new PrintWriter(w);
         e.printStackTrace(pw);
         return w.toString();
     }
@@ -1018,12 +1005,12 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
          */
         @Override
         public void run() {
-            final ClassLoader savedClassLoader =
+            ClassLoader savedClassLoader =
                     Thread.currentThread().getContextClassLoader();
             try {
                 if (factoryClassLoader != null) {
                     // Set the class loader for the factory
-                    final ClassLoader cl = factoryClassLoader.get();
+                    ClassLoader cl = factoryClassLoader.get();
                     if (cl == null) {
                         // The pool has been dereferenced and the class loader
                         // GC'd. Cancel this timer so the pool can be GC'd as
@@ -1037,9 +1024,9 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
                 // Evict from the pool
                 try {
                     evict();
-                } catch(final Exception e) {
+                } catch(Exception e) {
                     swallowException(e);
-                } catch(final OutOfMemoryError oome) {
+                } catch(OutOfMemoryError oome) {
                     // Log problem but give evictor thread a chance to continue
                     // in case error is recoverable
                     oome.printStackTrace(System.err);
@@ -1047,7 +1034,7 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
                 // Re-create idle instances.
                 try {
                     ensureMinIdle();
-                } catch (final Exception e) {
+                } catch (Exception e) {
                     swallowException(e);
                 }
             } finally {
@@ -1072,7 +1059,7 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
          *
          * @param size number of values to maintain in the cache.
          */
-        public StatsStore(final int size) {
+        public StatsStore(int size) {
             this.size = size;
             values = new AtomicLong[size];
             for (int i = 0; i < size; i++) {
@@ -1086,7 +1073,7 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
          *
          * @param value new value to add to the cache.
          */
-        public synchronized void add(final long value) {
+        public synchronized void add(long value) {
             values[index].set(value);
             index++;
             if (index == size) {
@@ -1103,7 +1090,7 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
             double result = 0;
             int counter = 0;
             for (int i = 0; i < size; i++) {
-                final long value = values[i].get();
+                long value = values[i].get();
                 if (value != -1) {
                     counter++;
                     result = result * ((counter - 1) / (double) counter) +
@@ -1112,190 +1099,5 @@ public abstract class BaseGenericObjectPool<T> extends BaseObject {
             }
             return (long) result;
         }
-
-        @Override
-        public String toString() {
-            final StringBuilder builder = new StringBuilder();
-            builder.append("StatsStore [values=");
-            builder.append(Arrays.toString(values));
-            builder.append(", size=");
-            builder.append(size);
-            builder.append(", index=");
-            builder.append(index);
-            builder.append("]");
-            return builder.toString();
-        }
     }
-
-    /**
-     * The idle object eviction iterator. Holds a reference to the idle objects.
-     */
-    class EvictionIterator implements Iterator<PooledObject<T>> {
-
-        private final Deque<PooledObject<T>> idleObjects;
-        private final Iterator<PooledObject<T>> idleObjectIterator;
-
-        /**
-         * Create an EvictionIterator for the provided idle instance deque.
-         * @param idleObjects underlying deque
-         */
-        EvictionIterator(final Deque<PooledObject<T>> idleObjects) {
-            this.idleObjects = idleObjects;
-
-            if (getLifo()) {
-                idleObjectIterator = idleObjects.descendingIterator();
-            } else {
-                idleObjectIterator = idleObjects.iterator();
-            }
-        }
-
-        /**
-         * Returns the idle object deque referenced by this iterator.
-         * @return the idle object deque
-         */
-        public Deque<PooledObject<T>> getIdleObjects() {
-            return idleObjects;
-        }
-
-        /** {@inheritDoc} */
-        @Override
-        public boolean hasNext() {
-            return idleObjectIterator.hasNext();
-        }
-
-        /** {@inheritDoc} */
-        @Override
-        public PooledObject<T> next() {
-            return idleObjectIterator.next();
-        }
-
-        /** {@inheritDoc} */
-        @Override
-        public void remove() {
-            idleObjectIterator.remove();
-        }
-
-    }
-
-    /**
-     * Wrapper for objects under management by the pool.
-     *
-     * GenericObjectPool and GenericKeyedObjectPool maintain references to all
-     * objects under management using maps keyed on the objects. This wrapper
-     * class ensures that objects can work as hash keys.
-     *
-     * @param <T> type of objects in the pool
-     */
-    static class IdentityWrapper<T> {
-        /** Wrapped object */
-        private final T instance;
-
-        /**
-         * Create a wrapper for an instance.
-         *
-         * @param instance object to wrap
-         */
-        public IdentityWrapper(final T instance) {
-            this.instance = instance;
-        }
-
-        @Override
-        public int hashCode() {
-            return System.identityHashCode(instance);
-        }
-
-        @Override
-        @SuppressWarnings("rawtypes")
-        public boolean equals(final Object other) {
-            return  other instanceof IdentityWrapper &&
-                    ((IdentityWrapper) other).instance == instance;
-        }
-
-        /**
-         * @return the wrapped object
-         */
-        public T getObject() {
-            return instance;
-        }
-
-        @Override
-        public String toString() {
-            final StringBuilder builder = new StringBuilder();
-            builder.append("IdentityWrapper [instance=");
-            builder.append(instance);
-            builder.append("]");
-            return builder.toString();
-        }
-    }
-
-    @Override
-    protected void toStringAppendFields(final StringBuilder builder) {
-        builder.append("maxTotal=");
-        builder.append(maxTotal);
-        builder.append(", blockWhenExhausted=");
-        builder.append(blockWhenExhausted);
-        builder.append(", maxWaitMillis=");
-        builder.append(maxWaitMillis);
-        builder.append(", lifo=");
-        builder.append(lifo);
-        builder.append(", fairness=");
-        builder.append(fairness);
-        builder.append(", testOnCreate=");
-        builder.append(testOnCreate);
-        builder.append(", testOnBorrow=");
-        builder.append(testOnBorrow);
-        builder.append(", testOnReturn=");
-        builder.append(testOnReturn);
-        builder.append(", testWhileIdle=");
-        builder.append(testWhileIdle);
-        builder.append(", timeBetweenEvictionRunsMillis=");
-        builder.append(timeBetweenEvictionRunsMillis);
-        builder.append(", numTestsPerEvictionRun=");
-        builder.append(numTestsPerEvictionRun);
-        builder.append(", minEvictableIdleTimeMillis=");
-        builder.append(minEvictableIdleTimeMillis);
-        builder.append(", softMinEvictableIdleTimeMillis=");
-        builder.append(softMinEvictableIdleTimeMillis);
-        builder.append(", evictionPolicy=");
-        builder.append(evictionPolicy);
-        builder.append(", closeLock=");
-        builder.append(closeLock);
-        builder.append(", closed=");
-        builder.append(closed);
-        builder.append(", evictionLock=");
-        builder.append(evictionLock);
-        builder.append(", evictor=");
-        builder.append(evictor);
-        builder.append(", evictionIterator=");
-        builder.append(evictionIterator);
-        builder.append(", factoryClassLoader=");
-        builder.append(factoryClassLoader);
-        builder.append(", oname=");
-        builder.append(oname);
-        builder.append(", creationStackTrace=");
-        builder.append(creationStackTrace);
-        builder.append(", borrowedCount=");
-        builder.append(borrowedCount);
-        builder.append(", returnedCount=");
-        builder.append(returnedCount);
-        builder.append(", createdCount=");
-        builder.append(createdCount);
-        builder.append(", destroyedCount=");
-        builder.append(destroyedCount);
-        builder.append(", destroyedByEvictorCount=");
-        builder.append(destroyedByEvictorCount);
-        builder.append(", destroyedByBorrowValidationCount=");
-        builder.append(destroyedByBorrowValidationCount);
-        builder.append(", activeTimes=");
-        builder.append(activeTimes);
-        builder.append(", idleTimes=");
-        builder.append(idleTimes);
-        builder.append(", waitTimes=");
-        builder.append(waitTimes);
-        builder.append(", maxBorrowWaitTimeMillis=");
-        builder.append(maxBorrowWaitTimeMillis);
-        builder.append(", swallowedExceptionListener=");
-        builder.append(swallowedExceptionListener);
-    }
-
 }

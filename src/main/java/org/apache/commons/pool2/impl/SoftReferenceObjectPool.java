@@ -36,7 +36,7 @@ import org.apache.commons.pool2.PooledObjectFactory;
  * @param <T>
  *            Type of element pooled in this pool.
  *
- * @version $Revision: 1729268 $
+ * @version $Revision: 1622090 $
  *
  * @since 2.0
  */
@@ -64,18 +64,18 @@ public class SoftReferenceObjectPool<T> extends BaseObjectPool<T> {
 
     /** Idle references - waiting to be borrowed */
     private final LinkedBlockingDeque<PooledSoftReference<T>> idleReferences =
-        new LinkedBlockingDeque<PooledSoftReference<T>>();
+            new LinkedBlockingDeque<PooledSoftReference<T>>();
 
     /** All references - checked out or waiting to be borrowed. */
     private final ArrayList<PooledSoftReference<T>> allReferences =
-        new ArrayList<PooledSoftReference<T>>();
+            new ArrayList<PooledSoftReference<T>>();
 
     /**
      * Create a <code>SoftReferenceObjectPool</code> with the specified factory.
      *
      * @param factory object factory to use.
      */
-    public SoftReferenceObjectPool(final PooledObjectFactory<T> factory) {
+    public SoftReferenceObjectPool(PooledObjectFactory<T> factory) {
         this.factory = factory;
     }
 
@@ -124,13 +124,14 @@ public class SoftReferenceObjectPool<T> extends BaseObjectPool<T> {
             if (idleReferences.isEmpty()) {
                 if (null == factory) {
                     throw new NoSuchElementException();
+                } else {
+                    newlyCreated = true;
+                    obj = factory.makeObject().getObject();
+                    createCount++;
+                    // Do not register with the queue
+                    ref = new PooledSoftReference<T>(new SoftReference<T>(obj));
+                    allReferences.add(ref);
                 }
-                newlyCreated = true;
-                obj = factory.makeObject().getObject();
-                createCount++;
-                // Do not register with the queue
-                ref = new PooledSoftReference<T>(new SoftReference<T>(obj));
-                allReferences.add(ref);
             } else {
                 ref = idleReferences.pollFirst();
                 obj = ref.getObject();
@@ -146,11 +147,11 @@ public class SoftReferenceObjectPool<T> extends BaseObjectPool<T> {
                     if (!factory.validateObject(ref)) {
                         throw new Exception("ValidateObject failed");
                     }
-                } catch (final Throwable t) {
+                } catch (Throwable t) {
                     PoolUtils.checkRethrow(t);
                     try {
                         destroy(ref);
-                    } catch (final Throwable t2) {
+                    } catch (Throwable t2) {
                         PoolUtils.checkRethrow(t2);
                         // Swallowed
                     } finally {
@@ -189,12 +190,12 @@ public class SoftReferenceObjectPool<T> extends BaseObjectPool<T> {
      *            instance to return to the pool
      */
     @Override
-    public synchronized void returnObject(final T obj) throws Exception {
+    public synchronized void returnObject(T obj) throws Exception {
         boolean success = !isClosed();
         final PooledSoftReference<T> ref = findReference(obj);
         if (ref == null) {
             throw new IllegalStateException(
-                "Returned object not currently part of this pool");
+                    "Returned object not currently part of this pool");
         }
         if (factory != null) {
             if (!factory.validateObject(ref)) {
@@ -202,13 +203,13 @@ public class SoftReferenceObjectPool<T> extends BaseObjectPool<T> {
             } else {
                 try {
                     factory.passivateObject(ref);
-                } catch (final Exception e) {
+                } catch (Exception e) {
                     success = false;
                 }
             }
         }
 
-        final boolean shouldDestroy = !success;
+        boolean shouldDestroy = !success;
         numActive--;
         if (success) {
 
@@ -221,7 +222,7 @@ public class SoftReferenceObjectPool<T> extends BaseObjectPool<T> {
         if (shouldDestroy && factory != null) {
             try {
                 destroy(ref);
-            } catch (final Exception e) {
+            } catch (Exception e) {
                 // ignored
             }
         }
@@ -231,11 +232,11 @@ public class SoftReferenceObjectPool<T> extends BaseObjectPool<T> {
      * {@inheritDoc}
      */
     @Override
-    public synchronized void invalidateObject(final T obj) throws Exception {
+    public synchronized void invalidateObject(T obj) throws Exception {
         final PooledSoftReference<T> ref = findReference(obj);
         if (ref == null) {
             throw new IllegalStateException(
-                "Object to invalidate is not currently part of this pool");
+                    "Object to invalidate is not currently part of this pool");
         }
         if (factory != null) {
             destroy(ref);
@@ -273,10 +274,10 @@ public class SoftReferenceObjectPool<T> extends BaseObjectPool<T> {
             throw new IllegalStateException(
                     "Cannot add objects without a factory.");
         }
-        final T obj = factory.makeObject().getObject();
+        T obj = factory.makeObject().getObject();
         createCount++;
         // Create and register with the queue
-        final PooledSoftReference<T> ref = new PooledSoftReference<T>(
+        PooledSoftReference<T> ref = new PooledSoftReference<T>(
                 new SoftReference<T>(obj, refQueue));
         allReferences.add(ref);
 
@@ -287,7 +288,7 @@ public class SoftReferenceObjectPool<T> extends BaseObjectPool<T> {
             factory.passivateObject(ref);
         }
 
-        final boolean shouldDestroy = !success;
+        boolean shouldDestroy = !success;
         if (success) {
             idleReferences.add(ref);
             notifyAll(); // numActive has changed
@@ -296,7 +297,7 @@ public class SoftReferenceObjectPool<T> extends BaseObjectPool<T> {
         if (shouldDestroy) {
             try {
                 destroy(ref);
-            } catch (final Exception e) {
+            } catch (Exception e) {
                 // ignored
             }
         }
@@ -330,14 +331,14 @@ public class SoftReferenceObjectPool<T> extends BaseObjectPool<T> {
     @Override
     public synchronized void clear() {
         if (null != factory) {
-            final Iterator<PooledSoftReference<T>> iter = idleReferences.iterator();
+            Iterator<PooledSoftReference<T>> iter = idleReferences.iterator();
             while (iter.hasNext()) {
                 try {
                     final PooledSoftReference<T> ref = iter.next();
                     if (null != ref.getObject()) {
                         factory.destroyObject(ref);
                     }
-                } catch (final Exception e) {
+                } catch (Exception e) {
                     // ignore error, keep destroying the rest
                 }
             }
@@ -387,8 +388,8 @@ public class SoftReferenceObjectPool<T> extends BaseObjectPool<T> {
      * @param obj returning object
      * @return PooledSoftReference wrapping a soft reference to obj
      */
-    private PooledSoftReference<T> findReference(final T obj) {
-        final Iterator<PooledSoftReference<T>> iterator = allReferences.iterator();
+    private PooledSoftReference<T> findReference(T obj) {
+        Iterator<PooledSoftReference<T>> iterator = allReferences.iterator();
         while (iterator.hasNext()) {
             final PooledSoftReference<T> reference = iterator.next();
             if (reference.getObject() != null && reference.getObject().equals(obj)) {
@@ -406,7 +407,7 @@ public class SoftReferenceObjectPool<T> extends BaseObjectPool<T> {
      *
      * @throws Exception If an error occurs while trying to destroy the object
      */
-    private void destroy(final PooledSoftReference<T> toDestroy) throws Exception {
+    private void destroy(PooledSoftReference<T> toDestroy) throws Exception {
         toDestroy.invalidate();
         idleReferences.remove(toDestroy);
         allReferences.remove(toDestroy);
@@ -422,7 +423,7 @@ public class SoftReferenceObjectPool<T> extends BaseObjectPool<T> {
      * Clears cleared references from iterator's collection
      * @param iterator iterator over idle/allReferences
      */
-    private void removeClearedReferences(final Iterator<PooledSoftReference<T>> iterator) {
+    private void removeClearedReferences(Iterator<PooledSoftReference<T>> iterator) {
         PooledSoftReference<T> ref;
         while (iterator.hasNext()) {
             ref = iterator.next();
@@ -430,24 +431,5 @@ public class SoftReferenceObjectPool<T> extends BaseObjectPool<T> {
                 iterator.remove();
             }
         }
-    }
-
-    @Override
-    protected void toStringAppendFields(final StringBuilder builder) {
-        super.toStringAppendFields(builder);
-        builder.append(", factory=");
-        builder.append(factory);
-        builder.append(", refQueue=");
-        builder.append(refQueue);
-        builder.append(", numActive=");
-        builder.append(numActive);
-        builder.append(", destroyCount=");
-        builder.append(destroyCount);
-        builder.append(", createCount=");
-        builder.append(createCount);
-        builder.append(", idleReferences=");
-        builder.append(idleReferences);
-        builder.append(", allReferences=");
-        builder.append(allReferences);
     }
 }

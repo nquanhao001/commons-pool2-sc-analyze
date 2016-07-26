@@ -32,7 +32,7 @@ package org.apache.commons.pool2;
  *
  * @since 2.0
  */
-public abstract class BaseKeyedPooledObjectFactory<K,V> extends BaseObject
+public abstract class BaseKeyedPooledObjectFactory<K,V>
         implements KeyedPooledObjectFactory<K,V> {
 
     /**
@@ -45,7 +45,7 @@ public abstract class BaseKeyedPooledObjectFactory<K,V> extends BaseObject
      *    this will be propagated to the code requesting an object.
      */
     public abstract V create(K key)
-        throws Exception;
+            throws Exception;
 
     /**
      * Wrap the provided instance with an implementation of
@@ -58,7 +58,7 @@ public abstract class BaseKeyedPooledObjectFactory<K,V> extends BaseObject
     public abstract PooledObject<V> wrap(V value);
 
     @Override
-    public PooledObject<V> makeObject(final K key) throws Exception {
+    public PooledObject<V> makeObject(K key) throws Exception {
         return wrap(create(key));
     }
 
@@ -71,8 +71,8 @@ public abstract class BaseKeyedPooledObjectFactory<K,V> extends BaseObject
      * @param p a {@code PooledObject} wrapping the the instance to be destroyed
      */
     @Override
-    public void destroyObject(final K key, final PooledObject<V> p)
-        throws Exception {
+    public void destroyObject(K key, PooledObject<V> p)
+            throws Exception {
     }
 
     /**
@@ -85,7 +85,7 @@ public abstract class BaseKeyedPooledObjectFactory<K,V> extends BaseObject
      * @return always <code>true</code> in the default implementation
      */
     @Override
-    public boolean validateObject(final K key, final PooledObject<V> p) {
+    public boolean validateObject(K key, PooledObject<V> p) {
         return true;
     }
 
@@ -98,8 +98,8 @@ public abstract class BaseKeyedPooledObjectFactory<K,V> extends BaseObject
      * @param p a {@code PooledObject} wrapping the the instance to be activated
      */
     @Override
-    public void activateObject(final K key, final PooledObject<V> p)
-        throws Exception {
+    public void activateObject(K key, PooledObject<V> p)
+            throws Exception {
     }
 
     /**
@@ -111,7 +111,7 @@ public abstract class BaseKeyedPooledObjectFactory<K,V> extends BaseObject
      * @param p a {@code PooledObject} wrapping the the instance to be passivated
      */
     @Override
-    public void passivateObject(final K key, final PooledObject<V> p)
-        throws Exception {
+    public void passivateObject(K key, PooledObject<V> p)
+            throws Exception {
     }
 }

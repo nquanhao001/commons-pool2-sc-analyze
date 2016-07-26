@@ -56,7 +56,7 @@ public class DefaultPooledObject<T> implements PooledObject<T> {
      *
      * @param object The object to wrap
      */
-    public DefaultPooledObject(final T object) {
+    public DefaultPooledObject(T object) {
         this.object = object;
     }
 
@@ -73,22 +73,23 @@ public class DefaultPooledObject<T> implements PooledObject<T> {
     @Override
     public long getActiveTimeMillis() {
         // Take copies to avoid threading issues
-        final long rTime = lastReturnTime;
-        final long bTime = lastBorrowTime;
+        long rTime = lastReturnTime;
+        long bTime = lastBorrowTime;
 
         if (rTime > bTime) {
             return rTime - bTime;
+        } else {
+            return System.currentTimeMillis() - bTime;
         }
-        return System.currentTimeMillis() - bTime;
     }
 
     @Override
     public long getIdleTimeMillis() {
         final long elapsed = System.currentTimeMillis() - lastReturnTime;
-     // elapsed may be negative if:
-     // - another thread updates lastReturnTime during the calculation window
-     // - System.currentTimeMillis() is not monotonic (e.g. system time is set back)
-     return elapsed >= 0 ? elapsed : 0;
+        // elapsed may be negative if:
+        // - another thread updates lastReturnTime during the calculation window
+        // - System.currentTimeMillis() is not monotonic (e.g. system time is set back)
+        return elapsed >= 0 ? elapsed : 0;
     }
 
     @Override
@@ -123,12 +124,13 @@ public class DefaultPooledObject<T> implements PooledObject<T> {
     public long getLastUsedTime() {
         if (object instanceof TrackedUse) {
             return Math.max(((TrackedUse) object).getLastUsed(), lastUseTime);
+        } else {
+            return lastUseTime;
         }
-        return lastUseTime;
     }
 
     @Override
-    public int compareTo(final PooledObject<T> other) {
+    public int compareTo(PooledObject<T> other) {
         final long lastActiveDiff = this.getLastReturnTime() - other.getLastReturnTime();
         if (lastActiveDiff == 0) {
             // Make sure the natural ordering is broadly consistent with equals
@@ -143,7 +145,7 @@ public class DefaultPooledObject<T> implements PooledObject<T> {
 
     @Override
     public String toString() {
-        final StringBuilder result = new StringBuilder();
+        StringBuilder result = new StringBuilder();
         result.append("Object: ");
         result.append(object.toString());
         result.append(", State: ");
@@ -166,7 +168,7 @@ public class DefaultPooledObject<T> implements PooledObject<T> {
 
     @Override
     public synchronized boolean endEvictionTest(
-            final Deque<PooledObject<T>> idleQueue) {
+            Deque<PooledObject<T>> idleQueue) {
         if (state == PooledObjectState.EVICTION) {
             state = PooledObjectState.IDLE;
             return true;
@@ -240,20 +242,14 @@ public class DefaultPooledObject<T> implements PooledObject<T> {
     }
 
     @Override
-    public void printStackTrace(final PrintWriter writer) {
-        boolean written = false;
-        final Exception borrowedByCopy = this.borrowedBy;
+    public void printStackTrace(PrintWriter writer) {
+        Exception borrowedByCopy = this.borrowedBy;
         if (borrowedByCopy != null) {
             borrowedByCopy.printStackTrace(writer);
-            written = true;
         }
-        final Exception usedByCopy = this.usedBy;
+        Exception usedByCopy = this.usedBy;
         if (usedByCopy != null) {
             usedByCopy.printStackTrace(writer);
-            written = true;
-        }
-        if (written) {
-            writer.flush();
         }
     }
 
@@ -283,7 +279,7 @@ public class DefaultPooledObject<T> implements PooledObject<T> {
     }
 
     @Override
-    public void setLogAbandoned(final boolean logAbandoned) {
+    public void setLogAbandoned(boolean logAbandoned) {
         this.logAbandoned = logAbandoned;
     }
 
@@ -299,8 +295,8 @@ public class DefaultPooledObject<T> implements PooledObject<T> {
         /** Date format */
         //@GuardedBy("format")
         private static final SimpleDateFormat format = new SimpleDateFormat
-            ("'Pooled object created' yyyy-MM-dd HH:mm:ss Z " +
-             "'by the following code has not been returned to the pool:'");
+                ("'Pooled object created' yyyy-MM-dd HH:mm:ss Z " +
+                        "'by the following code has not been returned to the pool:'");
 
         private final long _createdTime;
 

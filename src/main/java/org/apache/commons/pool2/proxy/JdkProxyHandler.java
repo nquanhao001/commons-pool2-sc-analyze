@@ -39,13 +39,13 @@ class JdkProxyHandler<T> extends BaseProxyHandler<T>
      *                      be provided with usage tracking information for this
      *                      wrapped object
      */
-    JdkProxyHandler(final T pooledObject, final UsageTracking<T> usageTracking) {
+    JdkProxyHandler(T pooledObject, UsageTracking<T> usageTracking) {
         super(pooledObject, usageTracking);
     }
 
 
     @Override
-    public Object invoke(final Object proxy, final Method method, final Object[] args)
+    public Object invoke(Object proxy, Method method, Object[] args)
             throws Throwable {
         return doInvoke(method, args);
     }

@@ -37,7 +37,7 @@ public class DefaultPooledObjectInfo implements DefaultPooledObjectInfoMBean {
      *
      * @param pooledObject The pooled object that this instance will represent
      */
-    public DefaultPooledObjectInfo(final PooledObject<?> pooledObject) {
+    public DefaultPooledObjectInfo(PooledObject<?> pooledObject) {
         this.pooledObject = pooledObject;
     }
 
@@ -48,7 +48,7 @@ public class DefaultPooledObjectInfo implements DefaultPooledObjectInfoMBean {
 
     @Override
     public String getCreateTimeFormatted() {
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
         return sdf.format(Long.valueOf(pooledObject.getCreateTime()));
     }
 
@@ -59,13 +59,13 @@ public class DefaultPooledObjectInfo implements DefaultPooledObjectInfoMBean {
 
     @Override
     public String getLastBorrowTimeFormatted() {
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
         return sdf.format(Long.valueOf(pooledObject.getLastBorrowTime()));
     }
 
     @Override
     public String getLastBorrowTrace() {
-        final StringWriter sw = new StringWriter();
+        StringWriter sw = new StringWriter();
         pooledObject.printStackTrace(new PrintWriter(sw));
         return sw.toString();
     }
@@ -77,7 +77,7 @@ public class DefaultPooledObjectInfo implements DefaultPooledObjectInfoMBean {
 
     @Override
     public String getLastReturnTimeFormatted() {
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
         return sdf.format(Long.valueOf(pooledObject.getLastReturnTime()));
     }
 
@@ -96,19 +96,8 @@ public class DefaultPooledObjectInfo implements DefaultPooledObjectInfoMBean {
         // TODO Simplify this once getBorrowedCount has been added to PooledObject
         if (pooledObject instanceof DefaultPooledObject) {
             return ((DefaultPooledObject<?>) pooledObject).getBorrowedCount();
+        } else {
+            return -1;
         }
-        return -1;
-    }
-
-    /**
-     * @since 2.4.3
-     */
-    @Override
-    public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("DefaultPooledObjectInfo [pooledObject=");
-        builder.append(pooledObject);
-        builder.append("]");
-        return builder.toString();
     }
 }

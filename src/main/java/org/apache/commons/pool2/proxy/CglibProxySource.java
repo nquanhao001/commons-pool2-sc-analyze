@@ -37,21 +37,21 @@ public class CglibProxySource<T> implements ProxySource<T> {
      *
      * @param superclass The class to proxy
      */
-    public CglibProxySource(final Class<? extends T> superclass) {
+    public CglibProxySource(Class<? extends T> superclass) {
         this.superclass = superclass;
     }
 
+
     @Override
-    public T createProxy(final T pooledObject, final UsageTracking<T> usageTracking) {
-        final Enhancer enhancer = new Enhancer();
+    public T createProxy(T pooledObject, UsageTracking<T> usageTracking) {
+        Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(superclass);
 
-        final CglibProxyHandler<T> proxyInterceptor =
+        CglibProxyHandler<T> proxyInterceptor =
                 new CglibProxyHandler<T>(pooledObject, usageTracking);
         enhancer.setCallback(proxyInterceptor);
 
         @SuppressWarnings("unchecked")
-        final
         T proxy = (T) enhancer.create();
 
         return proxy;
@@ -59,24 +59,11 @@ public class CglibProxySource<T> implements ProxySource<T> {
 
 
     @Override
-    public T resolveProxy(final T proxy) {
+    public T resolveProxy(T proxy) {
         @SuppressWarnings("unchecked")
-        final
         CglibProxyHandler<T> cglibProxyHandler =
                 (CglibProxyHandler<T>) ((Factory) proxy).getCallback(0);
-        final T pooledObject = cglibProxyHandler.disableProxy();
+        T pooledObject = cglibProxyHandler.disableProxy();
         return pooledObject;
-    }
-
-    /**
-     * @since 2.4.3
-     */
-    @Override
-    public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("CglibProxySource [superclass=");
-        builder.append(superclass);
-        builder.append("]");
-        return builder.toString();
     }
 }

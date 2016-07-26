@@ -43,5 +43,5 @@ public interface EvictionPolicy<T> {
      *             <code>false</code>
      */
     boolean evict(EvictionConfig config, PooledObject<T> underTest,
-            int idleCount);
+                  int idleCount);
 }
